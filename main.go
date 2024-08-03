@@ -7,9 +7,22 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"path/filepath"
 )
 
+var workingDir string
+
 func main() {
+	var err error
+
+	// Initialize workingDir with the current working directory
+	workingDir, err = os.Getwd()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error getting current directory:", err)
+		return
+	}
+	fmt.Println("Initial Working Directory:", workingDir)
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
@@ -80,6 +93,21 @@ func startsWithPolitePhrase(input string, list []string) (bool, int) {
 	}
 	return longestMatchLength > 0, longestMatchLength
 }
+
+// print creeper
+func printCreeper() error {
+
+	// Use filepath.Join to construct the full path to creeper.txt
+	creeperPath := filepath.Join(workingDir, "static", "creeper.txt")
+
+	creeperArt, err := os.ReadFile(creeperPath)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(creeperArt))
+	return nil
+}
+
 func execInput(input string) error {
 	// Remove the newline character.
 	input = strings.TrimSuffix(input, "\n")
@@ -112,8 +140,13 @@ func execInput(input string) error {
 		if len(args) < 2 {
 			return ErrNoPath
 		}
+		pleaseSaid = false
 		// Change the directory and return the error
 		return os.Chdir(args[1])
+
+	case "creeper":
+		pleaseSaid = false
+		return printCreeper()
 
 	case "exit":
 		os.Exit(0)
