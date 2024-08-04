@@ -25,7 +25,7 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("> ")
+		fmt.Print(">>> ")
 		// Read the keyboad input.
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -42,11 +42,13 @@ func main() {
 // ErrNoPath is returned when 'cd' was called without a second argument.
 var ErrNoPath = errors.New("path required")
 var pleaseSaid = false
-
+var creeperCalled = false
+var creeperCountDown = 0
 // List of polite words
 var politeWords = []string{
 	"please",
 	"plz",
+	"pls",
 	"plzz",
 	"could you",
 	"would you kindly",
@@ -95,16 +97,15 @@ func startsWithPolitePhrase(input string, list []string) (bool, int) {
 }
 
 // print creeper
-func printCreeper() error {
-
+func printFile(fileName string) error {
 	// Use filepath.Join to construct the full path to creeper.txt
-	creeperPath := filepath.Join(workingDir, "static", "creeper.txt")
+	artPath := filepath.Join(workingDir, "static", fileName)
 
-	creeperArt, err := os.ReadFile(creeperPath)
+	art, err := os.ReadFile(artPath)
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(creeperArt))
+	fmt.Println(string(art))
 	return nil
 }
 
@@ -127,6 +128,12 @@ func execInput(input string) error {
 	// Split the input with white spaces
 	args := strings.Fields(input)
 
+	if creeperCountDown >= 3 {
+		fmt.Println("Boooom! Creeper Exploded gotta run 'cat' cmd to scare it away")
+		printFile("explosion.txt")
+		os.Exit(0)
+	}
+
 	//TODO: mem the please if already said
 	if len(args) < 1 {
 		fmt.Print("What?\n")
@@ -146,7 +153,19 @@ func execInput(input string) error {
 
 	case "creeper":
 		pleaseSaid = false
-		return printCreeper()
+		creeperCalled = true
+		return printFile("creeper.txt")
+
+	case "sword":
+		pleaseSaid = false
+		if creeperCalled {
+			creeperCalled = false
+			creeperCountDown = 0
+			fmt.Print("Creeper is slayed")
+			return printFile("defeatCreeper.txt")
+		}
+		
+		return printFile("sword.txt")
 
 	case "exit":
 		os.Exit(0)
@@ -154,6 +173,17 @@ func execInput(input string) error {
 
 	// Prepare the command to execute
 	cmd := exec.Command(args[0], args[1:]...)
+
+	if args[0] == "cat" && creeperCalled {
+		creeperCalled = false
+		creeperCountDown = 0
+		fmt.Print("Creeper is scared away!\n")
+	}
+
+	// after cmd exec, add one to creeperCount down
+	if creeperCalled {
+		creeperCountDown = creeperCountDown + 1
+	}
 
 	pleaseSaid = false
 	// Set the correct output device.
