@@ -1,13 +1,15 @@
 package main
 
 import (
-	"bufio"
+
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"path/filepath"
+	"strings"
+
+	"github.com/chzyer/readline"
 )
 
 var workingDir string
@@ -23,17 +25,28 @@ func main() {
 	}
 	fmt.Println("Initial Working Directory:", workingDir)
 
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print(">>> ")
-		// Read the keyboad input.
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:          ">>> ",
+		HistoryFile:     "/tmp/readline.tmp",
+		InterruptPrompt: "^C",
+		EOFPrompt:       "exit",
+	})
 
-		// Handle the execution of the input.
-		if err = execInput(input); err != nil {
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
+
+	fmt.Println("Browse your input history with the up/down keys")
+
+	for {
+		input, err := rl.Readline()
+		if err != nil {
+			break
+		}
+	
+		if err := execInput(input); err != nil {
+			// Print the error message if there's an error
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}
@@ -44,6 +57,7 @@ var ErrNoPath = errors.New("path required")
 var pleaseSaid = false
 var creeperCalled = false
 var creeperCountDown = 0
+
 // List of polite words
 var politeWords = []string{
 	"please",
@@ -164,7 +178,7 @@ func execInput(input string) error {
 			fmt.Print("Creeper is slayed")
 			return printFile("defeatCreeper.txt")
 		}
-		
+
 		return printFile("sword.txt")
 
 	case "exit":
