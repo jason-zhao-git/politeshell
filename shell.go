@@ -1,13 +1,14 @@
 package main
 
 import (
-
 	"errors"
 	"fmt"
+
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"math/rand"
 
 	"github.com/chzyer/readline"
 )
@@ -44,7 +45,7 @@ func main() {
 		if err != nil {
 			break
 		}
-	
+
 		if err := execInput(input); err != nil {
 			// Print the error message if there's an error
 			fmt.Fprintln(os.Stderr, err)
@@ -81,6 +82,20 @@ var politeWords = []string{
 	"it would be great if you",
 	"i would appreciate it if you could",
 	"would you please",
+}
+
+// List of React phrase when not polite
+var reactPhrases = []string{
+	"I don't like your altitude.",
+	"Hey, be polite!",
+	"Where is my please?",
+	"Mind your manners!",
+	"Please and thank you!",
+	"That's not very nice.",
+	"Try asking nicely.",
+	"Could you say that again?",
+	"Dont wanna sound passive aggressive, anyone ever teach you to say 'may I'?",
+	"I don't get paid enough for your altitude.",
 }
 
 func inList(word string, list []string) bool {
@@ -130,7 +145,12 @@ func execInput(input string) error {
 	match, length := startsWithPolitePhrase(input, politeWords)
 	//gotto say please in the beginning
 	if !pleaseSaid && !match {
-		fmt.Print("Hey be polite!\n")
+
+		// Generate a random index using the new random generator
+		randomIndex := rand.Intn(len(reactPhrases))
+
+		// Access and print the random phrase
+		fmt.Println(reactPhrases[randomIndex])
 		return nil
 	}
 
